@@ -3,11 +3,12 @@ import Link from "next/link"
 import { notFound } from "next/navigation"
 import { ArrowLeft, Bookmark, Clock3, Play, Star } from "lucide-react"
 import { getRelatedTitles, getTitleBySlug, TITLES } from "@/lib/data"
-import { getGenreByName } from "@/lib/genres"
 import { PosterImage } from "@/components/poster-image"
 import { Badge } from "@/components/ui/badge"
-import { Button } from "@/components/ui/button"
+import { Button, buttonVariants } from "@/components/ui/button"
+import { GenreBadges } from "@/components/genre-badges"
 import { MovieRow } from "@/components/movie-row"
+import { cn } from "@/lib/utils"
 
 export function generateStaticParams() {
   return TITLES.map((item) => ({ slug: item.slug }))
@@ -93,29 +94,7 @@ export default async function TitlePage(props: PageProps<"/title/[slug]">) {
                     {item.duration}
                   </span>
                 </div>
-                <div className="flex flex-wrap gap-1.5 pt-1">
-                  {item.genres.map((genre) => {
-                    const match = getGenreByName(genre)
-                    return match ? (
-                      <Link
-                        key={genre}
-                        href={`/genres/${match.slug}`}
-                        className="rounded-full focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-ring/50"
-                      >
-                        <Badge
-                          variant="outline"
-                          className="transition-colors hover:border-primary/40 hover:text-primary"
-                        >
-                          {genre}
-                        </Badge>
-                      </Link>
-                    ) : (
-                      <Badge key={genre} variant="outline">
-                        {genre}
-                      </Badge>
-                    )
-                  })}
-                </div>
+                <GenreBadges genres={item.genres} className="flex flex-wrap gap-1.5 pt-1" />
               </div>
 
               <p className="max-w-2xl text-sm text-muted-foreground sm:text-base">
@@ -123,20 +102,44 @@ export default async function TitlePage(props: PageProps<"/title/[slug]">) {
               </p>
 
               <div className="flex flex-wrap items-center gap-3">
-                <Button size="lg" disabled className="h-11 gap-2 px-6 text-sm">
-                  <Play className="size-4 fill-current" aria-hidden="true" />
-                  Watch Now
-                </Button>
+                {item.type === "movie" ? (
+                  <Link
+                    href={`/watch/movie/${item.slug}`}
+                    className={cn(buttonVariants({ size: "lg" }), "h-11 gap-2 px-6 text-sm")}
+                  >
+                    <Play className="size-4 fill-current" aria-hidden="true" />
+                    Watch Now
+                  </Link>
+                ) : (
+                  <Button
+                    size="lg"
+                    disabled
+                    aria-describedby="series-watch-note"
+                    className="h-11 gap-2 px-6 text-sm"
+                  >
+                    <Play className="size-4 fill-current" aria-hidden="true" />
+                    Watch Now
+                  </Button>
+                )}
                 <Button size="lg" variant="outline" disabled className="h-11 gap-2 px-6 text-sm">
                   <Bookmark className="size-4" aria-hidden="true" />
                   Add to Watchlist
                 </Button>
               </div>
 
-              <p className="max-w-xl text-xs text-muted-foreground">
-                This is a development preview detail page for demo/placeholder content only.
-                Playback, the ad-gate flow, and watchlist persistence have not been built yet.
-              </p>
+              <div className="max-w-xl space-y-1">
+                {item.type === "series" ? (
+                  <p id="series-watch-note" className="text-xs text-muted-foreground">
+                    Episode playback will be available when episode sources are configured.
+                  </p>
+                ) : null}
+                <p className="text-xs text-muted-foreground">
+                  This is a development preview detail page for demo/placeholder content only.
+                  {item.type === "movie"
+                    ? " The ad-gate flow and watchlist persistence have not been built yet."
+                    : " Watchlist persistence has not been built yet."}
+                </p>
+              </div>
             </div>
           </div>
         </div>

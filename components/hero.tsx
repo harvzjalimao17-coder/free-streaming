@@ -48,7 +48,7 @@ export function Hero({ item }: { item: Title }) {
 
           <div className="flex flex-wrap items-center gap-3 pt-2">
             <Link
-              href={`/title/${item.slug}`}
+              href={item.type === "movie" ? `/watch/movie/${item.slug}` : `/title/${item.slug}`}
               className={cn(buttonVariants({ size: "lg" }), "h-11 gap-2 px-6 text-sm")}
             >
               <Play className="size-4 fill-current" />

@@ -396,6 +396,10 @@ export function getTitleBySlug(slug: string): Title | undefined {
   return TITLES.find((title) => title.slug === slug)
 }
 
+export function getTitleById(id: string): Title | undefined {
+  return TITLES.find((title) => title.id === id)
+}
+
 function sortCatalog(items: Title[]): Title[] {
   return [...items].sort((a, b) => b.rating - a.rating || a.title.localeCompare(b.title))
 }
