@@ -14,6 +14,10 @@ export interface Title {
   genres: string[]
   year: number
   duration: string
+  /** Series only — number of seasons released, when known. */
+  seasons?: number
+  /** Series only — total episode count, when known. */
+  episodes?: number
   rating: number
   featured: boolean
   trending: boolean

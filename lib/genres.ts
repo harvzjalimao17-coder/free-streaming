@@ -38,3 +38,7 @@ export const GENRES: Genre[] = [
 export function getGenreBySlug(slug: string): Genre | undefined {
   return GENRES.find((genre) => genre.slug === slug)
 }
+
+export function getGenreByName(name: string): Genre | undefined {
+  return GENRES.find((genre) => genre.name === name)
+}

@@ -1,4 +1,5 @@
-import type { Title } from "@/lib/types"
+import type { MediaType, Title } from "@/lib/types"
+import { GENRES, type Genre } from "@/lib/genres"
 
 /**
  * Development/demo catalog only. These are original, fictional placeholder
@@ -190,6 +191,8 @@ export const TITLES: Title[] = [
     genres: ["Sci-Fi", "Thriller"],
     year: 2026,
     duration: "2 Seasons · 16 Episodes",
+    seasons: 2,
+    episodes: 16,
     rating: 8.5,
     featured: false,
     trending: true,
@@ -209,6 +212,8 @@ export const TITLES: Title[] = [
     genres: ["Comedy", "Drama"],
     year: 2025,
     duration: "1 Season · 10 Episodes",
+    seasons: 1,
+    episodes: 10,
     rating: 7.6,
     featured: false,
     trending: false,
@@ -228,6 +233,8 @@ export const TITLES: Title[] = [
     genres: ["Drama", "Fantasy"],
     year: 2025,
     duration: "3 Seasons · 27 Episodes",
+    seasons: 3,
+    episodes: 27,
     rating: 8.4,
     featured: false,
     trending: true,
@@ -247,6 +254,8 @@ export const TITLES: Title[] = [
     genres: ["Crime", "Comedy"],
     year: 2024,
     duration: "4 Seasons · 48 Episodes",
+    seasons: 4,
+    episodes: 48,
     rating: 8.0,
     featured: false,
     trending: false,
@@ -266,6 +275,8 @@ export const TITLES: Title[] = [
     genres: ["Thriller", "Drama"],
     year: 2026,
     duration: "1 Season · 8 Episodes",
+    seasons: 1,
+    episodes: 8,
     rating: 8.2,
     featured: false,
     trending: true,
@@ -285,6 +296,8 @@ export const TITLES: Title[] = [
     genres: ["Documentary"],
     year: 2025,
     duration: "1 Season · 12 Episodes",
+    seasons: 1,
+    episodes: 12,
     rating: 7.7,
     featured: false,
     trending: false,
@@ -304,6 +317,7 @@ export const TITLES: Title[] = [
     genres: ["Short Drama", "Thriller"],
     year: 2026,
     duration: "24 Episodes · ~9m each",
+    episodes: 24,
     rating: 8.0,
     featured: false,
     trending: true,
@@ -323,6 +337,7 @@ export const TITLES: Title[] = [
     genres: ["Short Drama", "Romance", "Comedy"],
     year: 2026,
     duration: "18 Episodes · ~11m each",
+    episodes: 18,
     rating: 7.6,
     featured: false,
     trending: false,
@@ -342,6 +357,8 @@ export const TITLES: Title[] = [
     genres: ["Animation", "Documentary"],
     year: 2025,
     duration: "1 Season · 6 Episodes",
+    seasons: 1,
+    episodes: 6,
     rating: 8.7,
     featured: false,
     trending: false,
@@ -377,4 +394,73 @@ export function getShortDramas(limit = 10): Title[] {
 
 export function getTitleBySlug(slug: string): Title | undefined {
   return TITLES.find((title) => title.slug === slug)
+}
+
+function sortCatalog(items: Title[]): Title[] {
+  return [...items].sort((a, b) => b.rating - a.rating || a.title.localeCompare(b.title))
+}
+
+/** All movies or all series, optionally narrowed to one genre. Sorted rating desc, title asc. */
+export function getTitlesByType(type: MediaType, genreName?: string): Title[] {
+  return sortCatalog(
+    TITLES.filter((title) => title.type === type && (!genreName || title.genres.includes(genreName)))
+  )
+}
+
+/** Movies and series that carry the given genre name (exact match against Title.genres). */
+export function getTitlesByGenreName(genreName: string): Title[] {
+  return sortCatalog(TITLES.filter((title) => title.genres.includes(genreName)))
+}
+
+/** Only the genres that have at least one title of the given media type — keeps genre filter pills from linking to guaranteed-empty results. */
+export function getGenresForType(type: MediaType): Genre[] {
+  const present = new Set(TITLES.filter((title) => title.type === type).flatMap((title) => title.genres))
+  return GENRES.filter((genre) => present.has(genre.name))
+}
+
+/**
+ * Client-side search over title, description, and genre(s). Case-insensitive
+ * substring match. Empty/whitespace query returns no results (callers should
+ * treat an empty query as "no search performed yet", not "zero matches").
+ */
+export function searchTitles(query: string): Title[] {
+  const q = query.trim().toLowerCase()
+  if (!q) return []
+
+  return TITLES.filter(
+    (title) =>
+      title.title.toLowerCase().includes(q) ||
+      title.description.toLowerCase().includes(q) ||
+      title.genre.toLowerCase().includes(q) ||
+      title.genres.some((genre) => genre.toLowerCase().includes(q))
+  )
+}
+
+/**
+ * Related titles ranked by: (1) same primary genre, (2) shared secondary
+ * genre(s), (3) same media type. Never random — ties break by rating desc,
+ * then title asc, so results are stable across renders.
+ */
+export function getRelatedTitles(slug: string, limit = 6): Title[] {
+  const current = getTitleBySlug(slug)
+  if (!current) return []
+
+  return TITLES.filter((title) => title.slug !== current.slug)
+    .map((title) => {
+      const primaryMatch = title.genre === current.genre
+      const sharedSecondary = title.genres.filter(
+        (genre) => genre !== current.genre && current.genres.includes(genre)
+      ).length
+      const sameType = title.type === current.type
+
+      const score = (primaryMatch ? 100 : 0) + sharedSecondary * 10 + (sameType ? 1 : 0)
+      return { title, score }
+    })
+    .filter((entry) => entry.score > 0)
+    .sort(
+      (a, b) =>
+        b.score - a.score || b.title.rating - a.title.rating || a.title.title.localeCompare(b.title.title)
+    )
+    .slice(0, limit)
+    .map((entry) => entry.title)
 }

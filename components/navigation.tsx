@@ -32,6 +32,7 @@ export function Navigation() {
             <Link
               key={link.href}
               href={link.href}
+              aria-current={isActive(link.href) ? "page" : undefined}
               className={cn(
                 "rounded-lg px-3 py-1.5 text-sm font-medium transition-colors hover:text-foreground",
                 isActive(link.href) ? "text-foreground" : "text-muted-foreground"
@@ -46,7 +47,11 @@ export function Navigation() {
           <Link
             href="/search"
             aria-label="Search"
-            className="inline-flex size-8 items-center justify-center rounded-lg text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+            aria-current={isActive("/search") ? "page" : undefined}
+            className={cn(
+              "inline-flex size-8 items-center justify-center rounded-lg transition-colors hover:bg-muted hover:text-foreground",
+              isActive("/search") ? "text-foreground" : "text-muted-foreground"
+            )}
           >
             <Search className="size-4.5" />
           </Link>
@@ -84,6 +89,7 @@ export function Navigation() {
                 <Link
                   href={link.href}
                   onClick={() => setOpen(false)}
+                  aria-current={isActive(link.href) ? "page" : undefined}
                   className={cn(
                     "block rounded-lg px-3 py-2.5 text-sm font-medium transition-colors",
                     isActive(link.href)
@@ -99,7 +105,11 @@ export function Navigation() {
               <Link
                 href="/search"
                 onClick={() => setOpen(false)}
-                className="flex items-center gap-2 rounded-lg px-3 py-2.5 text-sm font-medium text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+                aria-current={isActive("/search") ? "page" : undefined}
+                className={cn(
+                  "flex items-center gap-2 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors hover:bg-muted hover:text-foreground",
+                  isActive("/search") ? "bg-muted text-foreground" : "text-muted-foreground"
+                )}
               >
                 <Search className="size-4" />
                 Search
