@@ -1,0 +1,31 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 900" role="img" aria-label="Deep Current backdrop artwork">
+  <defs>
+    <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#083344" />
+      <stop offset="55%" stop-color="#0f172a" />
+      <stop offset="100%" stop-color="#000000" />
+    </linearGradient>
+    <radialGradient id="glow" cx="66%" cy="32%" r="50%">
+      <stop offset="0%" stop-color="#f99c00" stop-opacity="0.3" />
+      <stop offset="100%" stop-color="#f99c00" stop-opacity="0" />
+    </radialGradient>
+    <pattern id="dots" width="20" height="20" patternUnits="userSpaceOnUse">
+      <circle cx="1.5" cy="1.5" r="1.5" fill="#ffffff" />
+    </pattern>
+  </defs>
+
+  <rect width="1600" height="900" fill="url(#bg)" />
+  <rect width="1600" height="900" fill="url(#dots)" opacity="0.05" />
+  <circle cx="1060" cy="300" r="520" fill="url(#glow)" />
+
+  <line x1="600" y1="900" x2="1650" y2="100" stroke="#f99c00" stroke-opacity="0.1" stroke-width="2" />
+  <line x1="700" y1="900" x2="1700" y2="180" stroke="#f99c00" stroke-opacity="0.06" stroke-width="1" />
+
+  <circle cx="1180" cy="470" r="92" fill="#000000" fill-opacity="0.22" stroke="#f99c00" stroke-opacity="0.35" stroke-width="2" />
+  <path d="M1160,432 L1160,508 L1226,470 Z" fill="#f99c00" fill-opacity="0.5" />
+
+  <g opacity="0.55">
+    <rect x="1484" y="20" rx="10" ry="10" width="96" height="24" fill="#000000" fill-opacity="0.5" stroke="#ffffff" stroke-opacity="0.15" />
+    <text x="1532" y="36" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-size="10" font-weight="700" letter-spacing="1" fill="#ffffff">DEMO ART</text>
+  </g>
+</svg>

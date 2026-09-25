@@ -2,7 +2,7 @@ import type { Metadata } from "next"
 import { notFound } from "next/navigation"
 import { Clock3, Play, Star } from "lucide-react"
 import { getTitleBySlug, TITLES } from "@/lib/data"
-import { PosterArt } from "@/components/poster-art"
+import { PosterImage } from "@/components/poster-image"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 
@@ -37,14 +37,27 @@ export default async function TitlePage(props: PageProps<"/title/[slug]">) {
   return (
     <div>
       <div className="relative h-[38vh] min-h-[280px] w-full overflow-hidden border-b border-border">
-        <PosterArt gradient={item.gradient} className="absolute inset-0" showLabel={false} />
+        <PosterImage
+          src={item.backdrop}
+          alt={`${item.title} backdrop`}
+          gradient={item.gradient}
+          className="absolute inset-0"
+          sizes="100vw"
+          preload
+        />
         <div className="absolute inset-0 bg-gradient-to-t from-background via-background/40 to-transparent" />
       </div>
 
       <div className="mx-auto max-w-screen-2xl px-4 py-8 sm:px-6 lg:px-8">
         <div className="grid gap-8 lg:grid-cols-[240px_1fr]">
           <div className="relative -mt-20 aspect-[2/3] w-40 overflow-hidden rounded-xl border border-border shadow-xl sm:w-48 lg:-mt-28 lg:w-full">
-            <PosterArt gradient={item.gradient} className="absolute inset-0" />
+            <PosterImage
+              src={item.poster}
+              alt={`${item.title} poster`}
+              gradient={item.gradient}
+              className="absolute inset-0"
+              sizes="(min-width: 1024px) 240px, (min-width: 640px) 192px, 160px"
+            />
           </div>
 
           <div className="space-y-5">

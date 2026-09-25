@@ -3,12 +3,20 @@ import { Bookmark, Info, Play, Sparkles, Star } from "lucide-react"
 import type { Title } from "@/lib/types"
 import { Badge } from "@/components/ui/badge"
 import { buttonVariants } from "@/components/ui/button"
+import { PosterImage } from "@/components/poster-image"
 import { cn } from "@/lib/utils"
 
 export function Hero({ item }: { item: Title }) {
   return (
     <section className="relative isolate flex min-h-[560px] w-full items-end overflow-hidden border-b border-border sm:min-h-[620px] lg:min-h-[680px]">
-      <div className={cn("absolute inset-0 bg-gradient-to-br", item.gradient)} />
+      <PosterImage
+        src={item.backdrop}
+        alt={`${item.title} backdrop`}
+        gradient={item.gradient}
+        className="absolute inset-0"
+        sizes="100vw"
+        preload
+      />
       <div className="absolute inset-0 opacity-[0.06] [background-image:radial-gradient(circle_at_1px_1px,white_1px,transparent_0)] [background-size:22px_22px]" />
       <div className="absolute inset-0 bg-gradient-to-t from-background via-background/70 to-background/10" />
       <div className="absolute inset-0 bg-gradient-to-r from-background/95 via-background/30 to-transparent" />

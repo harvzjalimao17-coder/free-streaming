@@ -1,7 +1,7 @@
 import Link from "next/link"
 import { Play, Star } from "lucide-react"
 import type { Title } from "@/lib/types"
-import { PosterArt } from "@/components/poster-art"
+import { PosterImage } from "@/components/poster-image"
 import { cn } from "@/lib/utils"
 
 interface MovieCardProps {
@@ -16,7 +16,13 @@ export function MovieCard({ item, className }: MovieCardProps) {
       className={cn("group/card block w-36 shrink-0 snap-start sm:w-44", className)}
     >
       <div className="relative aspect-[2/3] overflow-hidden rounded-xl border border-border bg-card transition-all duration-300 group-hover/card:-translate-y-1 group-hover/card:border-primary/40 group-hover/card:shadow-lg group-hover/card:shadow-primary/10">
-        <PosterArt gradient={item.gradient} className="absolute inset-0" />
+        <PosterImage
+          src={item.poster}
+          alt={`${item.title} poster`}
+          gradient={item.gradient}
+          className="absolute inset-0"
+          sizes="(min-width: 640px) 176px, 144px"
+        />
         <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/5 to-transparent" />
 
         <span className="absolute top-2 right-2 rounded-full bg-black/60 px-1.5 py-0.5 text-[10px] font-semibold tracking-wide text-white/70 uppercase backdrop-blur-sm">
