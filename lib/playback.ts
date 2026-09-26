@@ -1,20 +1,23 @@
 /**
- * Conceptual playback state machine for the future ad-gated watch flow.
- *
- * Intended future flow (NOT implemented yet — this stage only establishes
- * the types so the next stage can wire up real transitions without
- * redesigning the player or watch pages):
+ * Playback state machine for the ad-gated watch flow, driven by
+ * components/watch-gate.tsx:
  *
  *   LOCKED -> AD_LOADING -> AD_PLAYING -> AD_COMPLETED -> CONTENT_UNLOCKED -> PLAYING
  *
- * ERROR is reachable from any step. DEVELOPMENT_PREVIEW stands in for the
- * entire flow until there is both a real, authorized content source and a
- * real ad provider — every watch page in this stage renders that state.
+ * ERROR is reachable from any step (surfaced today via VideoPlayer's own
+ * <video>/<iframe> load-error handling once content is unlocked).
  *
- * Client-side state must never be trusted as a real unlock/authorization
- * signal (e.g. a client `adCompleted = true` flag). The next stage's real
- * ad-gate architecture will need to verify unlock server-side before a
- * usable source is ever handed to the player.
+ * The AD_* transitions in this stage are a clearly-labeled development
+ * mock — a timed countdown, not a real ad provider — run entirely in the
+ * browser. Reaching CONTENT_UNLOCKED is therefore NOT a real
+ * authorization/entitlement check; there is no server to verify it
+ * against yet. A later stage must replace the mock ad step with a real
+ * provider and verify the unlock server-side (once auth exists). Never
+ * trust this client state as a substitute for that check.
+ *
+ * DEVELOPMENT_PREVIEW is kept for backward compatibility with components
+ * that render outside the gate flow (or before it starts); it is no
+ * longer the active default now that the (mocked) gate exists.
  */
 export type PlaybackState =
   | "LOCKED"
@@ -26,7 +29,7 @@ export type PlaybackState =
   | "ERROR"
   | "DEVELOPMENT_PREVIEW"
 
-export const DEFAULT_PLAYBACK_STATE: PlaybackState = "DEVELOPMENT_PREVIEW"
+export const DEFAULT_PLAYBACK_STATE: PlaybackState = "LOCKED"
 
 export const PLAYBACK_STATE_LABELS: Record<PlaybackState, string> = {
   LOCKED: "Locked",

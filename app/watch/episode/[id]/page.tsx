@@ -4,12 +4,10 @@ import { notFound } from "next/navigation"
 import { ArrowLeft, Clock3 } from "lucide-react"
 import { getRelatedTitles, getTitleById } from "@/lib/data"
 import { EPISODES, getEpisodeById } from "@/lib/episodes"
-import { DEFAULT_PLAYBACK_STATE } from "@/lib/playback"
 import { PosterImage } from "@/components/poster-image"
 import { Badge } from "@/components/ui/badge"
 import { GenreBadges } from "@/components/genre-badges"
-import { PlaybackStatusBadge } from "@/components/playback-status"
-import { VideoPlayer } from "@/components/video-player"
+import { WatchGate } from "@/components/watch-gate"
 import { MovieRow } from "@/components/movie-row"
 
 export function generateStaticParams() {
@@ -55,15 +53,14 @@ export default async function WatchEpisodePage(props: PageProps<"/watch/episode/
           Back to {series.title}
         </Link>
 
-        <VideoPlayer
+        <WatchGate
           title={`${series.title}: ${episode.title}`}
           gradient={series.gradient}
           poster={series.backdrop}
           source={episode.source}
-          playbackState={DEFAULT_PLAYBACK_STATE}
+          contentType="episode"
+          contentId={episode.id}
         />
-
-        <PlaybackStatusBadge state={DEFAULT_PLAYBACK_STATE} />
 
         <div className="grid gap-6 pt-2 sm:grid-cols-[120px_1fr]">
           <div className="relative hidden aspect-[2/3] w-full overflow-hidden rounded-xl border border-border shadow-lg sm:block">
@@ -97,8 +94,9 @@ export default async function WatchEpisodePage(props: PageProps<"/watch/episode/
             </p>
 
             <p className="max-w-xl text-xs text-muted-foreground">
-              This is a minimal development placeholder episode, not a full episode catalog. Real
-              episode sources have not been connected yet.
+              This is a minimal development placeholder episode, not a full episode catalog. The ad
+              step above is a mock placeholder, and real episode sources have not been connected
+              yet.
             </p>
           </div>
         </div>

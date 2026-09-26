@@ -3,12 +3,10 @@ import Link from "next/link"
 import { notFound } from "next/navigation"
 import { ArrowLeft, Clock3, Star } from "lucide-react"
 import { getRelatedTitles, getTitleBySlug, TITLES } from "@/lib/data"
-import { DEFAULT_PLAYBACK_STATE } from "@/lib/playback"
 import { PosterImage } from "@/components/poster-image"
 import { Badge } from "@/components/ui/badge"
 import { GenreBadges } from "@/components/genre-badges"
-import { PlaybackStatusBadge } from "@/components/playback-status"
-import { VideoPlayer } from "@/components/video-player"
+import { WatchGate } from "@/components/watch-gate"
 import { MovieRow } from "@/components/movie-row"
 
 export function generateStaticParams() {
@@ -52,15 +50,14 @@ export default async function WatchMoviePage(props: PageProps<"/watch/movie/[slu
           Back to details
         </Link>
 
-        <VideoPlayer
+        <WatchGate
           title={item.title}
           gradient={item.gradient}
           poster={item.backdrop}
           source={item.source}
-          playbackState={DEFAULT_PLAYBACK_STATE}
+          contentType="movie"
+          contentId={item.slug}
         />
-
-        <PlaybackStatusBadge state={DEFAULT_PLAYBACK_STATE} />
 
         <div className="grid gap-6 pt-2 sm:grid-cols-[120px_1fr]">
           <div className="relative hidden aspect-[2/3] w-full overflow-hidden rounded-xl border border-border shadow-lg sm:block">
@@ -96,8 +93,8 @@ export default async function WatchMoviePage(props: PageProps<"/watch/movie/[slu
             <p className="max-w-2xl text-sm text-muted-foreground sm:text-base">{item.description}</p>
 
             <p className="max-w-xl text-xs text-muted-foreground">
-              This is a development preview. Real content playback and the ad-gate flow have not
-              been built yet.
+              This is a development preview. The ad step above is a mock placeholder, not a real ad
+              provider, and real content playback has not been connected yet.
             </p>
           </div>
         </div>
