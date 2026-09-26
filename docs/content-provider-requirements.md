@@ -113,4 +113,58 @@ Use this checklist for **every** candidate provider or licensed catalog before a
 
 ---
 
+## Filmhub Research Findings
+
+**Status of this section:** Factual research findings only. Filmhub is **not** approved,
+licensed, cleared, recommended, or selected for StreamFree by this section or any other
+part of this document. Nothing here changes the REQUIRED / OPTIONAL / BLOCKER checklist
+above — Filmhub, like any provider, must still clear every item in that checklist before
+integration.
+
+### VERIFIED FROM FILMHUB (official sources)
+
+The following is stated directly in Filmhub's own published materials:
+
+- The standard rights grant covers use on an **"Ad-Supported, Subscription, and/or Transactional basis"**.
+- Rights are granted **"by any and all means and media"**.
+- The distribution agreement is **non-exclusive**.
+- Territory defaults to **worldwide**.
+- Territory can be **narrowed by the filmmaker** on a per-title opt-out basis (a filmmaker-side control, not a buyer-side one).
+- Filmhub **"makes no guarantees"** that any specific title will be distributed to any specific channel.
+- Buyer-facing content categories listed: **narrative films, series, documentary, shorts, animation**.
+- The buyer licensing pathway is a **contact form to Filmhub's licensing team** — there is no public self-serve signup or published buyer eligibility criteria.
+
+Sources: [filmhub.com/terms](https://filmhub.com/terms) (Standard Distribution Deal), [filmhub.com/buyers](https://filmhub.com/buyers) (buyer-facing page).
+
+### UNKNOWN / REQUIRES DIRECT CONFIRMATION
+
+None of the following are confirmed by any official Filmhub source found in this investigation, and none should be assumed permitted or true merely because the items above are confirmed:
+
+- Whether a new, independent platform like StreamFree can become a buyer at all
+- Whether a Philippines-based company is eligible to become a buyer
+- Whether worldwide distribution is available to a Philippines-based platform specifically
+- Whether third-party advertising is permitted in StreamFree's exact implementation
+- Whether rewarded ads specifically (as opposed to ad-supported viewing generally) may be used as the monetization mechanism
+- Whether a "Watch Ad → Unlock → Playback" access model specifically is permitted
+- Whether Google Ad Manager specifically may be used as the ad platform
+- Whether DRM is required by Filmhub or any of its channel partners
+- Whether StreamFree would receive/host media files directly, versus delivery through some other mechanism
+- Whether metadata (title, description, etc.) and artwork (poster/backdrop) are provided by Filmhub or must be sourced separately
+- Whether subtitles/captions are included
+- Buyer-side pricing
+- Buyer-side revenue share (the only published revenue-share figure — 20% — is what Filmhub retains from the *filmmaker's* earnings, and is unrelated to buyer-side terms)
+- Minimum guarantees
+- Minimum catalog commitments
+- Contract duration
+- Exclusivity at the buyer-deal level (non-exclusivity is confirmed only at the filmmaker-to-Filmhub level, above)
+- Reporting requirements
+- Geo-restriction enforcement mechanics (as distinct from the territory *policy* confirmed above)
+- Takedown requirements
+
+**Secondary-source information** (third-party reporting, not Filmhub's own materials) — included only as context, and explicitly **not** treated as proof of any licensing right: some industry coverage states Filmhub has distributed "more than 17,000 movies since January 2020" and supplies "as much as 15 percent" of one AVOD platform's library. This describes Filmhub's general scale and activity; it does not establish any of the unknowns listed above.
+
+*This section does not conclude that Filmhub is usable by StreamFree. Every item in the Section 5 checklist above still applies before any integration decision.*
+
+---
+
 *This document does not recommend or rank any provider. It defines the bar every candidate must clear.*
