@@ -179,7 +179,7 @@ function AdLoadingPanel() {
     >
       <span
         aria-hidden="true"
-        className="size-8 animate-spin rounded-full border-2 border-white/20 border-t-primary"
+        className="size-8 animate-spin rounded-full border-2 border-white/20 border-t-primary motion-reduce:animate-none"
       />
       <p className="text-sm text-white/70">Preparing ad…</p>
     </div>
@@ -217,7 +217,7 @@ function VerifyingPanel() {
     >
       <span
         aria-hidden="true"
-        className="size-8 animate-spin rounded-full border-2 border-white/20 border-t-primary"
+        className="size-8 animate-spin rounded-full border-2 border-white/20 border-t-primary motion-reduce:animate-none"
       />
       <p className="text-sm text-white/70">Verifying…</p>
     </div>

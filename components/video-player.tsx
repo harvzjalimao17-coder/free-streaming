@@ -1,11 +1,12 @@
 "use client"
 
-import { useMemo, useState } from "react"
+import { useCallback, useMemo, useState } from "react"
 import { Play } from "lucide-react"
 import type { VideoSource } from "@/lib/types"
 import { DEFAULT_PLAYBACK_STATE, type PlaybackState } from "@/lib/playback"
 import { contentSourceProvider } from "@/lib/content-source"
 import { PosterArt } from "@/components/poster-art"
+import { Button } from "@/components/ui/button"
 import { cn } from "@/lib/utils"
 
 interface VideoPlayerProps {
@@ -41,11 +42,24 @@ export function VideoPlayer({
   className,
 }: VideoPlayerProps) {
   const [elementStatus, setElementStatus] = useState<ElementStatus>("idle")
+  // Set only by the native <video>'s own onWaiting/onPlaying events — a
+  // stall that happens *after* playback has already started, distinct
+  // from the initial "loading" status above.
+  const [isBuffering, setIsBuffering] = useState(false)
+  // Bumped on Retry to force a fresh <video> element (new `key`), which
+  // restarts loading of the same source without a page reload.
+  const [reloadKey, setReloadKey] = useState(0)
 
   const resolution = useMemo(
     () => contentSourceProvider.resolve(source ?? { sourceType: "unavailable" }),
     [source]
   )
+
+  const handleRetry = useCallback(() => {
+    setElementStatus("idle")
+    setIsBuffering(false)
+    setReloadKey((key) => key + 1)
+  }, [])
 
   const isPlaying = playbackState === "PLAYING"
   const showError = playbackState === "ERROR" || elementStatus === "error"
@@ -61,6 +75,10 @@ export function VideoPlayer({
   const unavailable = isPlaying && resolution.ok && resolution.source.sourceType === "unavailable"
   const invalid = isPlaying && !resolution.ok
   const embedRenderable = embedSource !== null && embedSource.embedSupported === true
+  const showLoadingIndicator =
+    (nativeSource !== null || (embedSource !== null && embedRenderable)) &&
+    !showError &&
+    (elementStatus === "loading" || isBuffering)
 
   return (
     <div
@@ -73,15 +91,24 @@ export function VideoPlayer({
 
       {nativeSource ? (
         <video
-          key={nativeSource.url}
+          key={`${nativeSource.url}-${reloadKey}`}
           className="absolute inset-0 h-full w-full"
           controls
+          playsInline
           preload="metadata"
           poster={poster}
           aria-label={`${title} video player`}
-          onLoadStart={() => setElementStatus("loading")}
+          onLoadStart={() => {
+            setElementStatus("loading")
+            setIsBuffering(false)
+          }}
           onCanPlay={() => setElementStatus("idle")}
-          onError={() => setElementStatus("error")}
+          onPlaying={() => setIsBuffering(false)}
+          onWaiting={() => setIsBuffering(true)}
+          onError={() => {
+            setElementStatus("error")
+            setIsBuffering(false)
+          }}
         >
           <source src={nativeSource.url} />
         </video>
@@ -112,7 +139,7 @@ export function VideoPlayer({
 
       {!showError && !isPlaying ? <DevelopmentPreviewOverlay title={title} playbackState={playbackState} /> : null}
 
-      {(nativeSource || (embedSource && embedRenderable)) && elementStatus === "loading" ? (
+      {showLoadingIndicator ? (
         <div
           className="absolute inset-0 flex items-center justify-center bg-black/50"
           role="status"
@@ -120,21 +147,26 @@ export function VideoPlayer({
         >
           <span
             aria-hidden="true"
-            className="size-8 animate-spin rounded-full border-2 border-white/20 border-t-primary"
+            className="size-8 animate-spin rounded-full border-2 border-white/20 border-t-primary motion-reduce:animate-none"
           />
-          <span className="sr-only">Loading video…</span>
+          <span className="sr-only">{elementStatus === "loading" ? "Loading video…" : "Buffering…"}</span>
         </div>
       ) : null}
 
       {showError ? (
         <div
-          className="absolute inset-0 flex flex-col items-center justify-center gap-1.5 bg-black/75 p-6 text-center"
+          className="absolute inset-0 flex flex-col items-center justify-center gap-3 bg-black/75 p-6 text-center"
           role="alert"
         >
           <p className="text-sm font-semibold text-destructive">Playback unavailable</p>
           <p className="max-w-xs text-xs text-white/70">
             This video couldn&apos;t be played. Please try again later.
           </p>
+          {nativeSource ? (
+            <Button onClick={handleRetry} size="sm" variant="outline" className="gap-1.5 text-xs">
+              Retry
+            </Button>
+          ) : null}
         </div>
       ) : null}
     </div>
