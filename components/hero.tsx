@@ -8,7 +8,7 @@ import { cn } from "@/lib/utils"
 
 export function Hero({ item }: { item: Title }) {
   return (
-    <section className="relative isolate flex min-h-[560px] w-full items-end overflow-hidden border-b border-border sm:min-h-[620px] lg:min-h-[680px]">
+    <section className="relative isolate flex min-h-[max(380px,45vh)] w-full items-end overflow-hidden border-b border-border sm:min-h-[max(420px,48vh)] lg:min-h-[max(460px,52vh)]">
       <PosterImage
         src={item.backdrop}
         alt={`${item.title} backdrop`}
@@ -21,7 +21,7 @@ export function Hero({ item }: { item: Title }) {
       <div className="absolute inset-0 bg-gradient-to-t from-background via-background/70 to-background/10" />
       <div className="absolute inset-0 bg-gradient-to-r from-background/95 via-background/30 to-transparent" />
 
-      <div className="relative w-full px-4 py-10 sm:px-6 sm:py-14 lg:px-8 lg:py-16">
+      <div className="relative w-full px-4 py-5 sm:px-6 sm:py-6 lg:px-8 lg:py-8">
         <div className="max-w-xl space-y-4 sm:space-y-5">
           <span className="inline-flex items-center gap-1.5 text-xs font-semibold tracking-wider text-primary uppercase">
             <Sparkles className="size-3.5" />
