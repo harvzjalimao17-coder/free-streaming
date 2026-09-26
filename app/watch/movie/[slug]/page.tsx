@@ -92,10 +92,28 @@ export default async function WatchMoviePage(props: PageProps<"/watch/movie/[slu
 
             <p className="max-w-2xl text-sm text-muted-foreground sm:text-base">{item.description}</p>
 
-            <p className="max-w-xl text-xs text-muted-foreground">
-              This is a development preview. The ad step above is a mock placeholder, not a real ad
-              provider, and real content playback has not been connected yet.
-            </p>
+            {item.source ? (
+              <p className="max-w-xl text-xs text-muted-foreground">
+                This title plays an openly-licensed development test video —{" "}
+                <span className="font-medium text-foreground/80">Big Buck Bunny</span>, ©
+                Blender Foundation, licensed under{" "}
+                <a
+                  href="https://creativecommons.org/licenses/by-nd/4.0/"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="underline underline-offset-2 hover:text-foreground"
+                >
+                  CC BY-ND 4.0
+                </a>
+                , via the Internet Archive. It is not this title&apos;s actual content. The ad
+                step above is still a mock placeholder, not a real ad provider.
+              </p>
+            ) : (
+              <p className="max-w-xl text-xs text-muted-foreground">
+                This is a development preview. The ad step above is a mock placeholder, not a real ad
+                provider, and real content playback has not been connected yet.
+              </p>
+            )}
           </div>
         </div>
       </div>
