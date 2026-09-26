@@ -59,21 +59,21 @@ export default async function WatchMoviePage(props: PageProps<"/watch/movie/[slu
           contentId={item.slug}
         />
 
-        <div className="grid gap-6 pt-2 sm:grid-cols-[120px_1fr]">
+        <div className="grid gap-6 pt-2 sm:grid-cols-[140px_1fr] sm:gap-8 lg:grid-cols-[160px_1fr]">
           <div className="relative hidden aspect-[2/3] w-full overflow-hidden rounded-xl border border-border shadow-lg sm:block">
             <PosterImage
               src={item.poster}
               alt={`${item.title} poster`}
               gradient={item.gradient}
               className="absolute inset-0"
-              sizes="120px"
+              sizes="(min-width: 1024px) 160px, 140px"
             />
           </div>
 
           <div className="space-y-3">
             <div className="space-y-1.5">
               <Badge variant="muted">Movie</Badge>
-              <h1 className="text-2xl font-bold tracking-tight text-foreground sm:text-3xl">
+              <h1 className="text-2xl font-bold tracking-tight text-foreground sm:text-3xl lg:text-4xl">
                 {item.title}
               </h1>
               <div className="flex flex-wrap items-center gap-x-3 gap-y-1.5 text-sm text-muted-foreground">

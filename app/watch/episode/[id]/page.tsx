@@ -62,21 +62,21 @@ export default async function WatchEpisodePage(props: PageProps<"/watch/episode/
           contentId={episode.id}
         />
 
-        <div className="grid gap-6 pt-2 sm:grid-cols-[120px_1fr]">
+        <div className="grid gap-6 pt-2 sm:grid-cols-[140px_1fr] sm:gap-8 lg:grid-cols-[160px_1fr]">
           <div className="relative hidden aspect-[2/3] w-full overflow-hidden rounded-xl border border-border shadow-lg sm:block">
             <PosterImage
               src={series.poster}
               alt={`${series.title} poster`}
               gradient={series.gradient}
               className="absolute inset-0"
-              sizes="120px"
+              sizes="(min-width: 1024px) 160px, 140px"
             />
           </div>
 
           <div className="space-y-3">
             <div className="space-y-1.5">
               <Badge variant="muted">Episode {episode.episodeNumber}</Badge>
-              <h1 className="text-2xl font-bold tracking-tight text-foreground sm:text-3xl">
+              <h1 className="text-2xl font-bold tracking-tight text-foreground sm:text-3xl lg:text-4xl">
                 {episode.title}
               </h1>
               <p className="text-sm text-muted-foreground">{series.title}</p>
@@ -94,9 +94,9 @@ export default async function WatchEpisodePage(props: PageProps<"/watch/episode/
             </p>
 
             <p className="max-w-xl text-xs text-muted-foreground">
-              This is a minimal development placeholder episode, not a full episode catalog. The ad
-              step above is a mock placeholder, and real episode sources have not been connected
-              yet.
+              This is a development preview. Episode data is a minimal placeholder, not a full
+              episode catalog, and the ad step above is a mock placeholder — real episode sources
+              have not been connected yet.
             </p>
           </div>
         </div>

@@ -32,12 +32,12 @@ export type PlaybackState =
 export const DEFAULT_PLAYBACK_STATE: PlaybackState = "LOCKED"
 
 export const PLAYBACK_STATE_LABELS: Record<PlaybackState, string> = {
-  LOCKED: "Locked",
-  AD_LOADING: "Loading ad",
+  LOCKED: "Ready to watch",
+  AD_LOADING: "Getting ready…",
   AD_PLAYING: "Ad playing",
-  AD_COMPLETED: "Ad completed",
-  CONTENT_UNLOCKED: "Content unlocked",
-  PLAYING: "Playing",
+  AD_COMPLETED: "Verifying…",
+  CONTENT_UNLOCKED: "Unlocked",
+  PLAYING: "Now playing",
   ERROR: "Playback error",
-  DEVELOPMENT_PREVIEW: "Development preview",
+  DEVELOPMENT_PREVIEW: "Preview",
 }

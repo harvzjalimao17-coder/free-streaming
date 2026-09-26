@@ -187,17 +187,33 @@ function AdLoadingPanel() {
 }
 
 function AdPlayingPanel({ secondsRemaining }: { secondsRemaining: number }) {
+  // Purely a render of the existing secondsRemaining/MOCK_AD_DURATION_SECONDS
+  // values already tracked in WatchGate's countdown — no new timing logic.
+  const radius = 36
+  const circumference = 2 * Math.PI * radius
+  const progress = Math.min(1, Math.max(0, secondsRemaining / MOCK_AD_DURATION_SECONDS))
+  const dashOffset = circumference * (1 - progress)
+
   return (
     <div className="absolute inset-0 flex flex-col items-center justify-center gap-4 bg-black/70 p-6 text-center">
       <span className="rounded-full border border-white/15 bg-black/50 px-2.5 py-1 text-[10px] font-semibold tracking-wider text-white/60 uppercase">
         Ad — Development Placeholder
       </span>
-      <div
-        className="flex size-20 items-center justify-center rounded-full border-2 border-primary/60 text-2xl font-bold text-primary"
-        role="status"
-        aria-live="polite"
-      >
-        {secondsRemaining}
+      <div className="relative flex size-20 items-center justify-center" role="status" aria-live="polite">
+        <svg className="absolute inset-0 -rotate-90" viewBox="0 0 80 80" aria-hidden="true">
+          <circle cx="40" cy="40" r={radius} strokeWidth="4" className="fill-none stroke-white/15" />
+          <circle
+            cx="40"
+            cy="40"
+            r={radius}
+            strokeWidth="4"
+            strokeLinecap="round"
+            strokeDasharray={circumference}
+            strokeDashoffset={dashOffset}
+            className="fill-none stroke-primary transition-[stroke-dashoffset] duration-1000 ease-linear motion-reduce:transition-none"
+          />
+        </svg>
+        <span className="text-2xl font-bold text-primary">{secondsRemaining}</span>
         <span className="sr-only">seconds remaining in the placeholder ad</span>
       </div>
       <p className="max-w-xs text-xs text-white/60">
