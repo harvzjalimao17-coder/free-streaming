@@ -25,6 +25,14 @@ export const TITLES: Title[] = [
     trending: true,
     addedAt: "2026-09-20",
     gradient: "from-orange-900 via-neutral-900 to-black",
+    // Development test source only — an openly-licensed film (CC BY-ND 4.0,
+    // Blender Foundation), not a real release of "Inferno Protocol". Verified
+    // reachable over HTTPS; see docs/licensing-response-tracker.md context.
+    source: {
+      sourceType: "native",
+      url: "https://archive.org/download/big-buck-bunny-1440p-60-fps-vp-8/Big%20Buck%20Bunny%20360p%2030FPS.mp4",
+      provider: "Blender Foundation — Big Buck Bunny (CC BY-ND 4.0, via Internet Archive)",
+    },
   },
   {
     id: "t02",
@@ -71,6 +79,14 @@ export const TITLES: Title[] = [
     trending: false,
     addedAt: "2026-08-02",
     gradient: "from-amber-950 via-neutral-900 to-black",
+    // Development test source only — an openly-licensed film (CC BY-ND 4.0,
+    // Blender Foundation), not a real release of "Glass Horizon". Verified
+    // reachable over HTTPS; see docs/licensing-response-tracker.md context.
+    source: {
+      sourceType: "native",
+      url: "https://archive.org/download/big-buck-bunny-1440p-60-fps-vp-8/Big%20Buck%20Bunny%20360p%2030FPS.mp4",
+      provider: "Blender Foundation — Big Buck Bunny (CC BY-ND 4.0, via Internet Archive)",
+    },
   },
   {
     id: "t04",
@@ -90,6 +106,14 @@ export const TITLES: Title[] = [
     trending: true,
     addedAt: "2026-09-18",
     gradient: "from-blue-950 via-neutral-900 to-black",
+    // Development test source only — an openly-licensed film (CC BY-ND 4.0,
+    // Blender Foundation), not a real release of "Midnight Ledger". Verified
+    // reachable over HTTPS; see docs/licensing-response-tracker.md context.
+    source: {
+      sourceType: "native",
+      url: "https://archive.org/download/big-buck-bunny-1440p-60-fps-vp-8/Big%20Buck%20Bunny%20360p%2030FPS.mp4",
+      provider: "Blender Foundation — Big Buck Bunny (CC BY-ND 4.0, via Internet Archive)",
+    },
   },
   {
     id: "t05",
