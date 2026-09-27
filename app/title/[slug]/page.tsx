@@ -1,13 +1,14 @@
 import type { Metadata } from "next"
 import Link from "next/link"
 import { notFound } from "next/navigation"
-import { ArrowLeft, Bookmark, Clock3, Play, Star } from "lucide-react"
+import { ArrowLeft, Clock3, Play, Star } from "lucide-react"
 import { getRelatedTitles, getTitleBySlug, TITLES } from "@/lib/data"
 import { PosterImage } from "@/components/poster-image"
 import { Badge } from "@/components/ui/badge"
 import { Button, buttonVariants } from "@/components/ui/button"
 import { GenreBadges } from "@/components/genre-badges"
 import { MovieRow } from "@/components/movie-row"
+import { WatchlistButton } from "@/components/watchlist-button"
 import { cn } from "@/lib/utils"
 
 export function generateStaticParams() {
@@ -121,10 +122,7 @@ export default async function TitlePage(props: PageProps<"/title/[slug]">) {
                     Watch Now
                   </Button>
                 )}
-                <Button size="lg" variant="outline" disabled className="h-11 gap-2 px-6 text-sm">
-                  <Bookmark className="size-4" aria-hidden="true" />
-                  Add to Watchlist
-                </Button>
+                <WatchlistButton slug={item.slug} className="h-11 gap-2 px-6 text-sm" />
               </div>
 
               <div className="max-w-xl space-y-1">
@@ -135,9 +133,6 @@ export default async function TitlePage(props: PageProps<"/title/[slug]">) {
                 ) : null}
                 <p className="text-xs text-muted-foreground">
                   This is a development preview detail page for demo/placeholder content only.
-                  {item.type === "movie"
-                    ? " The ad-gate flow and watchlist persistence have not been built yet."
-                    : " Watchlist persistence has not been built yet."}
                 </p>
               </div>
             </div>
