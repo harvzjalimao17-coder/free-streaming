@@ -18,9 +18,11 @@ interface VideoPlayerProps {
   playbackState?: PlaybackState
   className?: string
   /**
-   * Identifies this content for watch-history purposes only (lib/history.ts)
-   * — optional, and unrelated to resume-playback, which stays keyed by the
-   * source URL. Omit either prop to opt out of history recording entirely.
+   * Identifies this content for watch-history (lib/history.ts) and, when
+   * present, is also preferred as the resume-playback identity (see
+   * deriveResumeKey below) so two titles sharing the same dev-source URL
+   * never share resume progress. Omit both to opt out of history recording;
+   * resume then falls back to keying off the source URL alone.
    */
   contentType?: HistoryContentType
   contentId?: string
@@ -38,7 +40,8 @@ const MEDIA_ERROR_MESSAGES: Record<number, string> = {
 }
 const DEFAULT_PLAYBACK_ERROR_MESSAGE = "This video couldn't be played. Please try again later."
 
-// --- Resume playback (localStorage only, keyed by the source URL) ---------
+// --- Resume playback (localStorage only, keyed by a stable per-title
+// identity when available — falls back to the source URL otherwise) ------
 // A minimal, isolated convenience feature: best-effort, never required for
 // playback to work, and never trusted for anything beyond "where did this
 // browser last leave off." Failures (storage disabled/full/private mode)
@@ -48,10 +51,26 @@ const RESUME_MIN_SECONDS = 5
 const RESUME_END_THRESHOLD_SECONDS = 15
 const RESUME_SAVE_INTERVAL_MS = 5000
 
-function readResumeTime(url: string | undefined): number | null {
-  if (!url || typeof window === "undefined") return null
+/**
+ * Resume identity: prefers `${contentType}:${contentId}` — the same stable
+ * identifiers lib/history.ts already uses — so two catalog titles that
+ * happen to share the same underlying dev-source URL never share resume
+ * progress. Falls back to the raw source URL only when contentType/
+ * contentId aren't supplied.
+ */
+function deriveResumeKey(
+  contentType: HistoryContentType | undefined,
+  contentId: string | undefined,
+  url: string | undefined
+): string | undefined {
+  if (contentType && contentId) return `${contentType}:${contentId}`
+  return url
+}
+
+function readResumeTime(key: string | undefined): number | null {
+  if (!key || typeof window === "undefined") return null
   try {
-    const raw = window.localStorage.getItem(RESUME_STORAGE_PREFIX + url)
+    const raw = window.localStorage.getItem(RESUME_STORAGE_PREFIX + key)
     if (!raw) return null
     const value = Number(raw)
     return Number.isFinite(value) && value > 0 ? value : null
@@ -60,19 +79,19 @@ function readResumeTime(url: string | undefined): number | null {
   }
 }
 
-function writeResumeTime(url: string | undefined, time: number) {
-  if (!url || typeof window === "undefined") return
+function writeResumeTime(key: string | undefined, time: number) {
+  if (!key || typeof window === "undefined") return
   try {
-    window.localStorage.setItem(RESUME_STORAGE_PREFIX + url, String(Math.floor(time)))
+    window.localStorage.setItem(RESUME_STORAGE_PREFIX + key, String(Math.floor(time)))
   } catch {
     // Best-effort only.
   }
 }
 
-function clearResumeTime(url: string | undefined) {
-  if (!url || typeof window === "undefined") return
+function clearResumeTime(key: string | undefined) {
+  if (!key || typeof window === "undefined") return
   try {
-    window.localStorage.removeItem(RESUME_STORAGE_PREFIX + url)
+    window.localStorage.removeItem(RESUME_STORAGE_PREFIX + key)
   } catch {
     // Best-effort only.
   }
@@ -128,7 +147,7 @@ export function VideoPlayer({
     () => typeof document !== "undefined" && document.pictureInPictureEnabled === true
   )
   const [playbackErrorMessage, setPlaybackErrorMessage] = useState<string | null>(null)
-  const [trackedSourceUrl, setTrackedSourceUrl] = useState<string | undefined>(undefined)
+  const [trackedResumeKey, setTrackedResumeKey] = useState<string | undefined>(undefined)
   // Resume-playback state — see the localStorage helpers above.
   const [duration, setDuration] = useState<number | null>(null)
   const [savedResumeTime, setSavedResumeTime] = useState<number | null>(null)
@@ -142,16 +161,20 @@ export function VideoPlayer({
 
   const nativeSourceUrl =
     resolution.ok && resolution.source.sourceType === "native" ? resolution.source.url : undefined
+  // Prefers the stable contentType/contentId identity over the raw URL, so
+  // two titles sharing the same dev-source URL never share resume state.
+  const resumeKey = deriveResumeKey(contentType, contentId, nativeSourceUrl)
 
-  // A fresh source (a different title) should get its own "not started yet"
-  // affordance again, not inherit the previous title's played/resume state.
-  // Adjusted during render (React's recommended pattern for resetting state
-  // when a prop changes) rather than in an effect.
-  if (nativeSourceUrl !== trackedSourceUrl) {
-    setTrackedSourceUrl(nativeSourceUrl)
+  // A fresh title (a different resume identity) should get its own "not
+  // started yet" affordance again, not inherit a previous title's
+  // played/resume state. Adjusted during render (React's recommended
+  // pattern for resetting state when a prop changes) rather than in an
+  // effect.
+  if (resumeKey !== trackedResumeKey) {
+    setTrackedResumeKey(resumeKey)
     setHasStarted(false)
     setDuration(null)
-    setSavedResumeTime(nativeSourceUrl ? readResumeTime(nativeSourceUrl) : null)
+    setSavedResumeTime(resumeKey ? readResumeTime(resumeKey) : null)
   }
 
   // Only a real, meaningfully-incomplete saved position is ever offered —
@@ -276,16 +299,16 @@ export function VideoPlayer({
             const now = Date.now()
             if (now - lastResumeSaveAtRef.current < RESUME_SAVE_INTERVAL_MS) return
             lastResumeSaveAtRef.current = now
-            writeResumeTime(nativeSource.url, video.currentTime)
+            writeResumeTime(resumeKey, video.currentTime)
             if (contentType && contentId) recordWatchStarted(contentType, contentId)
           }}
           onPause={(event) => {
             if (!event.currentTarget.ended) {
-              writeResumeTime(nativeSource.url, event.currentTarget.currentTime)
+              writeResumeTime(resumeKey, event.currentTarget.currentTime)
             }
           }}
           onEnded={() => {
-            clearResumeTime(nativeSource.url)
+            clearResumeTime(resumeKey)
             if (contentType && contentId) recordWatchCompleted(contentType, contentId)
           }}
           onError={(event) => {
