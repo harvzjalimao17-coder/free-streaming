@@ -1,7 +1,7 @@
 "use client"
 
-import { useCallback, useMemo, useState } from "react"
-import { Play } from "lucide-react"
+import { useCallback, useMemo, useRef, useState } from "react"
+import { PictureInPicture, Play } from "lucide-react"
 import type { VideoSource } from "@/lib/types"
 import { DEFAULT_PLAYBACK_STATE, type PlaybackState } from "@/lib/playback"
 import { contentSourceProvider } from "@/lib/content-source"
@@ -19,6 +19,16 @@ interface VideoPlayerProps {
 }
 
 type ElementStatus = "idle" | "loading" | "error"
+
+// MediaError.code values (no DOM lib enum for these) mapped to plain-language
+// messages — purely cosmetic error copy, does not change error *handling*.
+const MEDIA_ERROR_MESSAGES: Record<number, string> = {
+  1: "Playback was interrupted before it could finish loading.",
+  2: "A network problem interrupted playback. Check your connection and try again.",
+  3: "This video couldn't be decoded — it may be corrupted or use an unsupported format.",
+  4: "This video's format isn't supported by your browser.",
+}
+const DEFAULT_PLAYBACK_ERROR_MESSAGE = "This video couldn't be played. Please try again later."
 
 /**
  * Reusable player shell. Every source is resolved through
@@ -49,16 +59,59 @@ export function VideoPlayer({
   // Bumped on Retry to force a fresh <video> element (new `key`), which
   // restarts loading of the same source without a page reload.
   const [reloadKey, setReloadKey] = useState(0)
+  // Purely cosmetic UX state below — none of it affects the ad-gate,
+  // content-source resolution, or the conditions under which a source is
+  // considered playable.
+  const [hasStarted, setHasStarted] = useState(false)
+  // Browser capability, not runtime state — a lazy initializer avoids
+  // needing an effect (and matches SSR, where `document` is undefined).
+  const [pipSupported] = useState(
+    () => typeof document !== "undefined" && document.pictureInPictureEnabled === true
+  )
+  const [playbackErrorMessage, setPlaybackErrorMessage] = useState<string | null>(null)
+  const [trackedSourceUrl, setTrackedSourceUrl] = useState<string | undefined>(undefined)
+  const videoRef = useRef<HTMLVideoElement | null>(null)
 
   const resolution = useMemo(
     () => contentSourceProvider.resolve(source ?? { sourceType: "unavailable" }),
     [source]
   )
 
+  const nativeSourceUrl =
+    resolution.ok && resolution.source.sourceType === "native" ? resolution.source.url : undefined
+
+  // A fresh source (a different title) should get its own "not started yet"
+  // affordance again, not inherit the previous title's played state. Adjusted
+  // during render (React's recommended pattern for resetting state when a
+  // prop changes) rather than in an effect.
+  if (nativeSourceUrl !== trackedSourceUrl) {
+    setTrackedSourceUrl(nativeSourceUrl)
+    setHasStarted(false)
+  }
+
   const handleRetry = useCallback(() => {
     setElementStatus("idle")
     setIsBuffering(false)
+    setPlaybackErrorMessage(null)
     setReloadKey((key) => key + 1)
+  }, [])
+
+  const handlePlayClick = useCallback(() => {
+    videoRef.current?.play().catch(() => {
+      // Autoplay/policy rejection — the video's own controls remain the
+      // fallback; no state change needed here.
+    })
+  }, [])
+
+  const handlePipToggle = useCallback(() => {
+    const video = videoRef.current
+    if (!video) return
+
+    if (document.pictureInPictureElement === video) {
+      document.exitPictureInPicture().catch(() => {})
+    } else {
+      video.requestPictureInPicture().catch(() => {})
+    }
   }, [])
 
   const isPlaying = playbackState === "PLAYING"
@@ -79,6 +132,11 @@ export function VideoPlayer({
     (nativeSource !== null || (embedSource !== null && embedRenderable)) &&
     !showError &&
     (elementStatus === "loading" || isBuffering)
+  const showInitialPlayAffordance =
+    nativeSource !== null && !showError && !hasStarted && elementStatus !== "loading"
+  // Gated on hasStarted so this never overlaps/competes with the
+  // full-frame initial-play button below for the same click.
+  const showPipButton = nativeSource !== null && pipSupported && !showError && hasStarted
 
   return (
     <div
@@ -92,6 +150,7 @@ export function VideoPlayer({
       {nativeSource ? (
         <video
           key={`${nativeSource.url}-${reloadKey}`}
+          ref={videoRef}
           className="absolute inset-0 h-full w-full"
           controls
           playsInline
@@ -105,13 +164,40 @@ export function VideoPlayer({
           onCanPlay={() => setElementStatus("idle")}
           onPlaying={() => setIsBuffering(false)}
           onWaiting={() => setIsBuffering(true)}
-          onError={() => {
+          onPlay={() => setHasStarted(true)}
+          onError={(event) => {
+            const mediaError = event.currentTarget.error
             setElementStatus("error")
             setIsBuffering(false)
+            setPlaybackErrorMessage(mediaError ? (MEDIA_ERROR_MESSAGES[mediaError.code] ?? null) : null)
           }}
         >
           <source src={nativeSource.url} />
         </video>
+      ) : null}
+
+      {showPipButton ? (
+        <button
+          type="button"
+          onClick={handlePipToggle}
+          aria-label="Picture in picture"
+          className="absolute top-3 right-3 flex size-9 items-center justify-center rounded-full border border-white/15 bg-black/50 text-white/80 backdrop-blur-sm transition-colors hover:bg-black/70 hover:text-white focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-ring/50"
+        >
+          <PictureInPicture className="size-4" aria-hidden="true" />
+        </button>
+      ) : null}
+
+      {showInitialPlayAffordance ? (
+        <button
+          type="button"
+          onClick={handlePlayClick}
+          aria-label={`Play ${title}`}
+          className="group absolute inset-0 flex items-center justify-center bg-black/25 transition-colors hover:bg-black/35 focus-visible:outline-none"
+        >
+          <span className="flex size-16 items-center justify-center rounded-full bg-primary text-primary-foreground shadow-lg shadow-black/40 transition-transform group-hover:scale-105 group-focus-visible:ring-3 group-focus-visible:ring-ring/50 motion-reduce:transition-none">
+            <Play className="size-7 fill-current" aria-hidden="true" />
+          </span>
+        </button>
       ) : null}
 
       {embedSource && embedRenderable ? (
@@ -160,7 +246,7 @@ export function VideoPlayer({
         >
           <p className="text-sm font-semibold text-destructive">Playback unavailable</p>
           <p className="max-w-xs text-xs text-white/70">
-            This video couldn&apos;t be played. Please try again later.
+            {nativeSource ? playbackErrorMessage ?? DEFAULT_PLAYBACK_ERROR_MESSAGE : DEFAULT_PLAYBACK_ERROR_MESSAGE}
           </p>
           {nativeSource ? (
             <Button onClick={handleRetry} size="sm" variant="outline" className="gap-1.5 text-xs">
