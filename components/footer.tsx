@@ -6,6 +6,7 @@ const FOOTER_LINKS = [
   { href: "/series", label: "Series" },
   { href: "/genres", label: "Genres" },
   { href: "/watchlist", label: "Watchlist" },
+  { href: "/history", label: "History" },
 ]
 
 export function Footer() {

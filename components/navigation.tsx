@@ -3,7 +3,7 @@
 import { useState } from "react"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
-import { Bookmark, Clapperboard, Menu, Search, X } from "lucide-react"
+import { Bookmark, Clapperboard, History, Menu, Search, X } from "lucide-react"
 import { cn } from "@/lib/utils"
 
 const NAV_LINKS = [
@@ -69,6 +69,20 @@ export function Navigation() {
           >
             <Bookmark className="size-4.5" />
           </Link>
+          <Link
+            href="/history"
+            className="hidden items-center gap-1.5 rounded-lg px-3 py-1.5 text-sm font-medium text-muted-foreground transition-colors hover:bg-muted hover:text-foreground sm:inline-flex"
+          >
+            <History className="size-4" />
+            History
+          </Link>
+          <Link
+            href="/history"
+            aria-label="History"
+            className="inline-flex size-8 items-center justify-center rounded-lg text-muted-foreground transition-colors hover:bg-muted hover:text-foreground sm:hidden"
+          >
+            <History className="size-4.5" />
+          </Link>
           <button
             type="button"
             aria-label={open ? "Close menu" : "Open menu"}
@@ -123,6 +137,16 @@ export function Navigation() {
               >
                 <Bookmark className="size-4" />
                 Watchlist
+              </Link>
+            </li>
+            <li>
+              <Link
+                href="/history"
+                onClick={() => setOpen(false)}
+                className="flex items-center gap-2 rounded-lg px-3 py-2.5 text-sm font-medium text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+              >
+                <History className="size-4" />
+                History
               </Link>
             </li>
           </ul>

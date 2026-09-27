@@ -127,7 +127,15 @@ export function WatchGate({ title, gradient, poster, source, contentType, conten
   if (state === "CONTENT_UNLOCKED") {
     return (
       <div className="space-y-3">
-        <VideoPlayer title={title} gradient={gradient} poster={poster} source={source} playbackState="PLAYING" />
+        <VideoPlayer
+          title={title}
+          gradient={gradient}
+          poster={poster}
+          source={source}
+          playbackState="PLAYING"
+          contentType={contentType}
+          contentId={contentId}
+        />
         <PlaybackStatusBadge state="PLAYING" />
       </div>
     )

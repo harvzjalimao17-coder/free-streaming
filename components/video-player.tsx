@@ -5,6 +5,7 @@ import { PictureInPicture, Play } from "lucide-react"
 import type { VideoSource } from "@/lib/types"
 import { DEFAULT_PLAYBACK_STATE, type PlaybackState } from "@/lib/playback"
 import { contentSourceProvider } from "@/lib/content-source"
+import { type HistoryContentType, recordWatchCompleted, recordWatchStarted } from "@/lib/history"
 import { PosterArt } from "@/components/poster-art"
 import { Button } from "@/components/ui/button"
 import { cn } from "@/lib/utils"
@@ -16,6 +17,13 @@ interface VideoPlayerProps {
   source?: VideoSource
   playbackState?: PlaybackState
   className?: string
+  /**
+   * Identifies this content for watch-history purposes only (lib/history.ts)
+   * — optional, and unrelated to resume-playback, which stays keyed by the
+   * source URL. Omit either prop to opt out of history recording entirely.
+   */
+  contentType?: HistoryContentType
+  contentId?: string
 }
 
 type ElementStatus = "idle" | "loading" | "error"
@@ -99,6 +107,8 @@ export function VideoPlayer({
   source,
   playbackState = DEFAULT_PLAYBACK_STATE,
   className,
+  contentType,
+  contentId,
 }: VideoPlayerProps) {
   const [elementStatus, setElementStatus] = useState<ElementStatus>("idle")
   // Set only by the native <video>'s own onWaiting/onPlaying events — a
@@ -252,7 +262,10 @@ export function VideoPlayer({
           onCanPlay={() => setElementStatus("idle")}
           onPlaying={() => setIsBuffering(false)}
           onWaiting={() => setIsBuffering(true)}
-          onPlay={() => setHasStarted(true)}
+          onPlay={() => {
+            setHasStarted(true)
+            if (contentType && contentId) recordWatchStarted(contentType, contentId)
+          }}
           onLoadedMetadata={(event) => {
             const videoDuration = event.currentTarget.duration
             setDuration(Number.isFinite(videoDuration) ? videoDuration : null)
@@ -264,13 +277,17 @@ export function VideoPlayer({
             if (now - lastResumeSaveAtRef.current < RESUME_SAVE_INTERVAL_MS) return
             lastResumeSaveAtRef.current = now
             writeResumeTime(nativeSource.url, video.currentTime)
+            if (contentType && contentId) recordWatchStarted(contentType, contentId)
           }}
           onPause={(event) => {
             if (!event.currentTarget.ended) {
               writeResumeTime(nativeSource.url, event.currentTarget.currentTime)
             }
           }}
-          onEnded={() => clearResumeTime(nativeSource.url)}
+          onEnded={() => {
+            clearResumeTime(nativeSource.url)
+            if (contentType && contentId) recordWatchCompleted(contentType, contentId)
+          }}
           onError={(event) => {
             const mediaError = event.currentTarget.error
             setElementStatus("error")
