@@ -30,6 +30,55 @@ const MEDIA_ERROR_MESSAGES: Record<number, string> = {
 }
 const DEFAULT_PLAYBACK_ERROR_MESSAGE = "This video couldn't be played. Please try again later."
 
+// --- Resume playback (localStorage only, keyed by the source URL) ---------
+// A minimal, isolated convenience feature: best-effort, never required for
+// playback to work, and never trusted for anything beyond "where did this
+// browser last leave off." Failures (storage disabled/full/private mode)
+// are swallowed — resume simply doesn't offer itself, nothing else breaks.
+const RESUME_STORAGE_PREFIX = "streamfree:resume:"
+const RESUME_MIN_SECONDS = 5
+const RESUME_END_THRESHOLD_SECONDS = 15
+const RESUME_SAVE_INTERVAL_MS = 5000
+
+function readResumeTime(url: string | undefined): number | null {
+  if (!url || typeof window === "undefined") return null
+  try {
+    const raw = window.localStorage.getItem(RESUME_STORAGE_PREFIX + url)
+    if (!raw) return null
+    const value = Number(raw)
+    return Number.isFinite(value) && value > 0 ? value : null
+  } catch {
+    return null
+  }
+}
+
+function writeResumeTime(url: string | undefined, time: number) {
+  if (!url || typeof window === "undefined") return
+  try {
+    window.localStorage.setItem(RESUME_STORAGE_PREFIX + url, String(Math.floor(time)))
+  } catch {
+    // Best-effort only.
+  }
+}
+
+function clearResumeTime(url: string | undefined) {
+  if (!url || typeof window === "undefined") return
+  try {
+    window.localStorage.removeItem(RESUME_STORAGE_PREFIX + url)
+  } catch {
+    // Best-effort only.
+  }
+}
+
+function formatResumeLabel(seconds: number): string {
+  const total = Math.max(0, Math.floor(seconds))
+  const hrs = Math.floor(total / 3600)
+  const mins = Math.floor((total % 3600) / 60)
+  const secs = total % 60
+  const pad = (value: number) => String(value).padStart(2, "0")
+  return hrs > 0 ? `${hrs}:${pad(mins)}:${pad(secs)}` : `${mins}:${pad(secs)}`
+}
+
 /**
  * Reusable player shell. Every source is resolved through
  * contentSourceProvider.resolve() (lib/content-source) before it is ever
@@ -70,7 +119,11 @@ export function VideoPlayer({
   )
   const [playbackErrorMessage, setPlaybackErrorMessage] = useState<string | null>(null)
   const [trackedSourceUrl, setTrackedSourceUrl] = useState<string | undefined>(undefined)
+  // Resume-playback state — see the localStorage helpers above.
+  const [duration, setDuration] = useState<number | null>(null)
+  const [savedResumeTime, setSavedResumeTime] = useState<number | null>(null)
   const videoRef = useRef<HTMLVideoElement | null>(null)
+  const lastResumeSaveAtRef = useRef(0)
 
   const resolution = useMemo(
     () => contentSourceProvider.resolve(source ?? { sourceType: "unavailable" }),
@@ -81,13 +134,26 @@ export function VideoPlayer({
     resolution.ok && resolution.source.sourceType === "native" ? resolution.source.url : undefined
 
   // A fresh source (a different title) should get its own "not started yet"
-  // affordance again, not inherit the previous title's played state. Adjusted
-  // during render (React's recommended pattern for resetting state when a
-  // prop changes) rather than in an effect.
+  // affordance again, not inherit the previous title's played/resume state.
+  // Adjusted during render (React's recommended pattern for resetting state
+  // when a prop changes) rather than in an effect.
   if (nativeSourceUrl !== trackedSourceUrl) {
     setTrackedSourceUrl(nativeSourceUrl)
     setHasStarted(false)
+    setDuration(null)
+    setSavedResumeTime(nativeSourceUrl ? readResumeTime(nativeSourceUrl) : null)
   }
+
+  // Only a real, meaningfully-incomplete saved position is ever offered —
+  // requires knowing the real duration (from onLoadedMetadata) first, so
+  // this stays null until metadata has loaded.
+  const resumeOfferSeconds =
+    savedResumeTime !== null &&
+    savedResumeTime >= RESUME_MIN_SECONDS &&
+    duration !== null &&
+    duration - savedResumeTime > RESUME_END_THRESHOLD_SECONDS
+      ? savedResumeTime
+      : null
 
   const handleRetry = useCallback(() => {
     setElementStatus("idle")
@@ -102,6 +168,18 @@ export function VideoPlayer({
       // fallback; no state change needed here.
     })
   }, [])
+
+  const handleResumeFromSaved = useCallback(() => {
+    const video = videoRef.current
+    if (video && resumeOfferSeconds !== null) {
+      video.currentTime = resumeOfferSeconds
+    }
+    handlePlayClick()
+  }, [resumeOfferSeconds, handlePlayClick])
+
+  const handleStartOver = useCallback(() => {
+    handlePlayClick()
+  }, [handlePlayClick])
 
   const handlePipToggle = useCallback(() => {
     const video = videoRef.current
@@ -132,8 +210,18 @@ export function VideoPlayer({
     (nativeSource !== null || (embedSource !== null && embedRenderable)) &&
     !showError &&
     (elementStatus === "loading" || isBuffering)
+  const showResumePrompt =
+    nativeSource !== null &&
+    !showError &&
+    !hasStarted &&
+    elementStatus !== "loading" &&
+    resumeOfferSeconds !== null
   const showInitialPlayAffordance =
-    nativeSource !== null && !showError && !hasStarted && elementStatus !== "loading"
+    nativeSource !== null &&
+    !showError &&
+    !hasStarted &&
+    elementStatus !== "loading" &&
+    !showResumePrompt
   // Gated on hasStarted so this never overlaps/competes with the
   // full-frame initial-play button below for the same click.
   const showPipButton = nativeSource !== null && pipSupported && !showError && hasStarted
@@ -165,6 +253,24 @@ export function VideoPlayer({
           onPlaying={() => setIsBuffering(false)}
           onWaiting={() => setIsBuffering(true)}
           onPlay={() => setHasStarted(true)}
+          onLoadedMetadata={(event) => {
+            const videoDuration = event.currentTarget.duration
+            setDuration(Number.isFinite(videoDuration) ? videoDuration : null)
+          }}
+          onTimeUpdate={(event) => {
+            const video = event.currentTarget
+            if (video.paused || video.seeking) return
+            const now = Date.now()
+            if (now - lastResumeSaveAtRef.current < RESUME_SAVE_INTERVAL_MS) return
+            lastResumeSaveAtRef.current = now
+            writeResumeTime(nativeSource.url, video.currentTime)
+          }}
+          onPause={(event) => {
+            if (!event.currentTarget.ended) {
+              writeResumeTime(nativeSource.url, event.currentTarget.currentTime)
+            }
+          }}
+          onEnded={() => clearResumeTime(nativeSource.url)}
           onError={(event) => {
             const mediaError = event.currentTarget.error
             setElementStatus("error")
@@ -198,6 +304,26 @@ export function VideoPlayer({
             <Play className="size-7 fill-current" aria-hidden="true" />
           </span>
         </button>
+      ) : null}
+
+      {showResumePrompt ? (
+        <div className="absolute inset-0 flex flex-col items-center justify-center gap-4 bg-black/60 p-6 text-center">
+          <span className="flex size-16 items-center justify-center rounded-full bg-primary/15 text-primary">
+            <Play className="size-7 fill-current" aria-hidden="true" />
+          </span>
+          <p className="text-sm text-white/80">
+            Resume from{" "}
+            <span className="font-semibold text-white">{formatResumeLabel(resumeOfferSeconds ?? 0)}</span>?
+          </p>
+          <div className="flex flex-wrap items-center justify-center gap-3">
+            <Button onClick={handleResumeFromSaved} size="sm" className="gap-1.5 text-xs">
+              Resume
+            </Button>
+            <Button onClick={handleStartOver} size="sm" variant="outline" className="gap-1.5 text-xs">
+              Start Over
+            </Button>
+          </div>
+        </div>
       ) : null}
 
       {embedSource && embedRenderable ? (
