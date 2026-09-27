@@ -1,16 +1,19 @@
 "use client"
 
-import { History as HistoryIcon } from "lucide-react"
+import { History as HistoryIcon, Trash2 } from "lucide-react"
 import { getTitleById, getTitleBySlug } from "@/lib/data"
 import { getEpisodeById } from "@/lib/episodes"
-import type { HistoryEntry } from "@/lib/history"
-import { useHistoryEntries } from "@/lib/history"
+import type { HistoryContentType, HistoryEntry } from "@/lib/history"
+import { clearHistory, removeHistoryEntry, useHistoryEntries } from "@/lib/history"
 import { CatalogHeader } from "@/components/catalog-header"
 import { ComingSoon } from "@/components/coming-soon"
 import { HistoryRow } from "@/components/history-row"
+import { Button } from "@/components/ui/button"
 
 interface ResolvedHistoryItem {
   key: string
+  contentType: HistoryContentType
+  contentId: string
   href: string
   posterSrc: string
   posterAlt: string
@@ -30,6 +33,8 @@ function resolveEntry(entry: HistoryEntry): ResolvedHistoryItem | null {
 
     return {
       key: `movie:${title.slug}`,
+      contentType: entry.contentType,
+      contentId: entry.contentId,
       href: `/watch/movie/${title.slug}`,
       posterSrc: title.poster,
       posterAlt: `${title.title} poster`,
@@ -47,6 +52,8 @@ function resolveEntry(entry: HistoryEntry): ResolvedHistoryItem | null {
 
   return {
     key: `episode:${episode.id}`,
+    contentType: entry.contentType,
+    contentId: entry.contentId,
     href: `/watch/episode/${episode.id}`,
     posterSrc: series.poster,
     posterAlt: `${series.title} poster`,
@@ -81,13 +88,25 @@ export function HistoryView() {
 
   return (
     <div className="mx-auto max-w-screen-2xl space-y-6 px-4 py-8 sm:px-6 lg:px-8">
-      <CatalogHeader
-        icon={HistoryIcon}
-        title="Watch History"
-        description="Movies and episodes you've watched recently."
-        count={items.length}
-        countLabel="entries"
-      />
+      <div className="flex flex-wrap items-start justify-between gap-4">
+        <CatalogHeader
+          icon={HistoryIcon}
+          title="Watch History"
+          description="Movies and episodes you've watched recently."
+          count={items.length}
+          countLabel="entries"
+        />
+        <Button
+          type="button"
+          onClick={() => clearHistory()}
+          variant="outline"
+          size="sm"
+          className="gap-1.5 text-xs"
+        >
+          <Trash2 className="size-3.5" aria-hidden="true" />
+          Clear History
+        </Button>
+      </div>
       <div className="space-y-3">
         {items.map((item) => (
           <HistoryRow
@@ -101,6 +120,7 @@ export function HistoryView() {
             typeLabel={item.typeLabel}
             completed={item.completed}
             watchedAt={item.watchedAt}
+            onRemove={() => removeHistoryEntry(item.contentType, item.contentId)}
           />
         ))}
       </div>

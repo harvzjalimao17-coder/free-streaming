@@ -1,5 +1,5 @@
 import Link from "next/link"
-import { CheckCircle2, Play } from "lucide-react"
+import { CheckCircle2, Play, X } from "lucide-react"
 import { PosterImage } from "@/components/poster-image"
 import { Badge } from "@/components/ui/badge"
 import { cn } from "@/lib/utils"
@@ -16,6 +16,8 @@ interface HistoryRowProps {
   typeLabel: "Movie" | "Series"
   completed: boolean
   watchedAt: number
+  /** Omit to render the row without a remove control. */
+  onRemove?: () => void
   className?: string
 }
 
@@ -52,6 +54,7 @@ export function HistoryRow({
   typeLabel,
   completed,
   watchedAt,
+  onRemove,
   className,
 }: HistoryRowProps) {
   return (
@@ -95,6 +98,21 @@ export function HistoryRow({
         ) : null}
         <p className="text-xs text-muted-foreground">Watched {formatWatchedAt(watchedAt)}</p>
       </div>
+
+      {onRemove ? (
+        <button
+          type="button"
+          onClick={(event) => {
+            event.preventDefault()
+            event.stopPropagation()
+            onRemove()
+          }}
+          aria-label={`Remove ${primaryLabel} from history`}
+          className="flex size-8 shrink-0 items-center justify-center rounded-lg text-muted-foreground transition-colors hover:bg-muted hover:text-foreground focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-ring/50"
+        >
+          <X className="size-4" aria-hidden="true" />
+        </button>
+      ) : null}
     </Link>
   )
 }
